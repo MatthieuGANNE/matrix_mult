@@ -1,0 +1,32 @@
+[package]
+name = "matrix_mult"
+version = "0.1.0"
+authors = ["gannema <matthieu.ganne@grenoble-inp.org>"]
+edition = "2018"
+
+
+[dev-dependencies]
+criterion="*"
+
+[features]
+# enable this to log using rayon_logs
+logs = ["rayon_logs"]
+
+[dependencies]
+rayon_logs={optional=true, git="https://github.com/wagnerf42/rayon-logs"}
+nalgebra = "0.18.0"
+approx = { version = "0.3", default-features = false }
+faster = {git = "https://github.com/AdamNiederer/faster/"}
+rayon="*"
+ndarray= { version = "0.12.1", features = ["blas"] }
+itertools="0.8.0"
+smallvec = "~0.6"
+itertools-num="*"
+blas-src = { version = "0.2.0", default-features = false, features = ["openblas"] }
+openblas-src = { version = "0.6.0", default-features = false, features = ["cblas", "system"] }
+rayon_adaptive = {git = "https://github.com/wagnerf42/rayon-adaptive.git", branch = "new_api", features=["logs"]}
+rand = "0.6.5"
+time = "0.1"
+[[bench]]
+name = "matrix_mult"
+harness = false
