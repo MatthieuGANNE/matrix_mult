@@ -75,17 +75,14 @@ pub fn multiply_add_u32(
         .collect::<SmallVec<[_; 512]>>();
     for (x, mut column) in columns.into_iter().take(bwidth).enumerate() {
         column.scalar_fill(&mut column_data);
-        // eprintln!("COLUMN : {:?}",column_data);
         for y in 0..h {
             let row = &a[(y * stridesa)..((y ) * stridesa + l)];
-            // eprintln!("ROW : {:?}",row);
             into[((y * stridesinto) + x)] +=
                 (row.simd_iter(u32s(0)), column_data.simd_iter(u32s(0)))
                     .zip()
                     .simd_reduce(u32s(0), |acc, (a, b)| acc + a * b)
                     .sum();
         }
-        // eprintln!("OK!")
     }
 }
 

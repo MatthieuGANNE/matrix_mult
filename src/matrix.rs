@@ -5,6 +5,7 @@ use ndarray::LinalgScalar;
 use ndarray::Ix2;
 use ndarray::linalg;
 use ndarray::s;
+use rand::Rng;
 use crate::my_ndarray;
 
 
@@ -100,12 +101,13 @@ A: LinalgScalar + Send + Sync,
 
 
 #[test]
-
 fn test_mult(){
+    let mut rng = rand::thread_rng();
+    let random = rng.gen_range(0.0, 1.0);
     let height = 1000;
     let width = 1000;
-    let an = Array::from_shape_fn((height, width), |(i, j)| (((j + i * width) % 3) as f32));
-    let bn = Array::from_shape_fn((width, height), |(i, j)| (((j + 7 + i * height) % 3) as f32));
+    let an = Array::from_shape_fn((height, width), |(i, j)| (((j + i * width) % 3) as f32) + random);
+    let bn = Array::from_shape_fn((width, height), |(i, j)| (((j + 7 + i * height) % 3) as f32) - random);
     let mut dest = Array::zeros((height, height));
     let mut m = Matrix {
         matrix: Vec::new()
@@ -121,6 +123,6 @@ fn test_mult(){
             });
     let mut verif = Array::zeros((height,height));
     linalg::general_mat_mul(1.0, &an, &bn, 1.0, &mut verif);
-    assert_eq!(dest,verif);
+    assert_abs_diff_eq!(dest.as_slice().unwrap() ,verif.as_slice().unwrap(),epsilon = 1e-1f32);
 
 }

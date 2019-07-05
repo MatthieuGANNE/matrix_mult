@@ -5,6 +5,7 @@ use ndarray::LinalgScalar;
 use ndarray::Ix2;
 use ndarray::linalg;
 use ndarray::s;
+use rand::Rng;
 use crate::my_ndarray;
 
 
@@ -76,27 +77,30 @@ where
     }
 }
 
+
 #[test]
 fn test_mult(){
-    let height = 5000;
-    let width = 5000;
-    let an = Array::from_shape_fn((height, width), |(i, j)| (((j + i * width) % 3) as u32));
-    let bn = Array::from_shape_fn((width, height), |(i, j)| (((j + 7 + i * height) % 3) as u32));
+    let height = 1000;
+    let width = 1000;
+    let mut rng = rand::thread_rng();
+    let random = rng.gen_range(0.0, 1.0);
+    let an = Array::from_shape_fn((height, width), |(i, j)| (((j + i * width) % 3) as f32) - random);
+    let bn = Array::from_shape_fn((width, height), |(i, j)| (((j + 7 + i * height) % 3) as f32) + random);
     let mut dest = Array::zeros((height, height));
     let mut m = Matrix {
         a: an.view(),
         b: bn.view(),
         d: dest.view_mut(), 
     };
-    m.cut().with_policy(Policy::Adaptive(1000,2000))
+    m.cut().with_policy(Policy::Join(height*height/32))
             .for_each(|e| {
                         let a = e.a;
                         let b = e.b;
                         let mut output = e.d;
-                        linalg::general_mat_mul(1u32, &a, &b, 1u32, &mut output);
+                        linalg::general_mat_mul(1f32, &a, &b, 1f32, &mut output);
                     });
     let mut verif = Array::zeros((height,height));
-    linalg::general_mat_mul(1u32, &an, &bn, 1u32, &mut verif);
-    assert_eq!(dest,verif);
+    linalg::general_mat_mul(1f32, &an, &bn, 1f32, &mut verif);
+    assert_abs_diff_eq!(dest.as_slice().unwrap() ,verif.as_slice().unwrap(),epsilon = 1e-1f32);
 
 }
