@@ -1,4 +1,4 @@
-const USAGE: &str = "
+const _USAGE: &str = "
 Usage: matmul bench [--size N]
        matmul --help
 Parallel matrix multiplication.

@@ -1,7 +1,7 @@
 extern crate rayon;
-use matrix_mult::rayon_mult;
 use itertools::enumerate;
 use matrix_mult::my_ndarray;
+use matrix_mult::rayon_mult;
 use std::fs::File;
 use std::io::Write;
 const ITERS: usize = 50;
@@ -43,7 +43,7 @@ fn main() -> std::io::Result<()> {
         for i in 0..ITERS {
             let seq = rayon_mult::timed_matmul(size, rayon_mult::seq_matmulz, "seq z-order");
             let par = rayon_mult::timed_matmul(size, rayon_mult::matmulz, "par z-order");
-            let par_nd = my_ndarray::timed_matmul_ndarray_f32(size, "par ndarray",true);
+            let par_nd = my_ndarray::timed_matmul_ndarray_f32(size, "par ndarray", true);
             let mut speedup = seq as f64 / par as f64;
             vecalgo1[i] = speedup;
             speedup = seq as f64 / par_nd as f64;

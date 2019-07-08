@@ -27,6 +27,8 @@ openblas-src = { version = "0.6.0", default-features = false, features = ["cblas
 rayon_adaptive = {git = "https://github.com/wagnerf42/rayon-adaptive.git", branch = "new_api", features=["logs"]}
 rand = "0.6.5"
 time = "0.1"
+num-traits="*"
+
 [[bench]]
 name = "matrix_mult"
 harness = false
