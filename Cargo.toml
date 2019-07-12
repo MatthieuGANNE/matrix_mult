@@ -13,7 +13,8 @@ criterion="*"
 logs = ["rayon_logs"]
 
 [dependencies]
-rayon_logs={optional=true, git="https://github.com/wagnerf42/rayon-logs"}
+rayon_logs= {optional=true, repository="../rayon-logs"}
+# {optional=true, git="https://github.com/wagnerf42/rayon-logs"}
 nalgebra = "0.18.0"
 approx = { version = "0.3", default-features = false }
 faster = {git = "https://github.com/AdamNiederer/faster/"}
@@ -32,3 +33,6 @@ num-traits="*"
 [[bench]]
 name = "matrix_mult"
 harness = false
+
+[profile.release]
+debug = true

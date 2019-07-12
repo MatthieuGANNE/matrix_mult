@@ -419,14 +419,14 @@ where
 }
 #[test]
 fn test_mult() {
-    let a = Array::from_shape_fn((4, 4), |(i, j)| i + j);
-    let b = Array::from_shape_fn((4, 4), |(i, j)| i + j);
+    let a = Array::from_shape_fn((25, 25), |(i, j)| i + j);
+    let b = Array::from_shape_fn((25, 25), |(i, j)| i + j);
     let (a_r, _a_c) = a.dim();
     let (_b_r, b_c) = b.dim();
     let mut result = Array::zeros((a_r, b_c));
 
     mult(a.view(), b.view(), result.view_mut());
-    let mut verif = Array::zeros((4, 4));
+    let mut verif = Array::zeros((25, 25));
     linalg::general_mat_mul(1, &a, &b, 1, &mut verif);
     assert_eq!(verif, result);
 }
