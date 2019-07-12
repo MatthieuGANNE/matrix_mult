@@ -1,8 +1,12 @@
 language: rust
 rust: nightly
 cache: cargo
+
+
 before_script:
-- export PATH="$PATH:$HOME/.cargo/bin"
+	- sudo apt-get install -y lgfortran
+	- sudo apt-get install -y lopenblas
+	- export PATH="$PATH:$HOME/.cargo/bin"
 script:
 - cargo build --release
 - cargo test --release --features=logs
