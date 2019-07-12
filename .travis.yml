@@ -2,10 +2,9 @@ language: rust
 rust: nightly
 cache: cargo
 
-before_install:
-  - sudo apt-get install -y gfortran
-	- sudo apt-get install openblas-dev
 before_script:
+- sudo apt-get install openblas-dev
+- sudo apt-get install -y gfortran
 - export PATH="$PATH:$HOME/.cargo/bin"
 script:
 - cargo build --release
