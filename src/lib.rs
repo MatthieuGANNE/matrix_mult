@@ -9,3 +9,4 @@ pub mod my_ndarray;
 pub mod naive_sequential;
 pub mod rayon_mult;
 pub mod split;
+pub mod vectorisation;

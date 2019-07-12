@@ -1,12 +1,10 @@
 use crate::faster_vec;
 use crate::matrix;
 use crate::matrix_adaptive;
-use crate::my_ndarray;
 use ndarray::linalg;
 use ndarray::{Array, ArrayView, Ix2};
 use rayon_adaptive::prelude::*;
 use rayon_adaptive::Policy;
-use std::slice::{from_raw_parts, from_raw_parts_mut};
 
 pub fn benchmark(
     height: usize,
@@ -60,32 +58,7 @@ pub fn benchmark_faster(
                 {
                     continue;
                 }
-                let (raw_ptr_a, len_a) = my_ndarray::view_ptr(a);
-                let stridesa = a.strides();
-                let (raw_ptr_b, len_b) = my_ndarray::view_ptr(b);
-                let stridesb = b.strides();
-                let raw_ptr_r = output.as_mut_ptr();
-                let dimr = output.shape();
-                let (row, col) = (dimr[0], dimr[1]);
-                let strides = output.strides();
-                let len_r = (row - 1) * strides[0] as usize + col;
-                let slicea = unsafe { from_raw_parts(raw_ptr_a, len_a) };
-                let sliceb = unsafe { from_raw_parts(raw_ptr_b, len_b) };
-                let mut slicer = unsafe { from_raw_parts_mut(raw_ptr_r, len_r) };
-                faster_vec::multiply_add(
-                    &mut slicer,
-                    &slicea,
-                    &sliceb,
-                    dima[1],
-                    dima[0],
-                    dimb[1],
-                    dimb[0],
-                    dimr[1],
-                    dimr[0],
-                    stridesa[0] as usize,
-                    stridesb[0] as usize,
-                    strides[0] as usize,
-                );
+                faster_vec::mult_faster_from_ndarray(a,b,&mut output);
             }
         }
     });
@@ -100,7 +73,7 @@ pub fn benchmark_adaptive(
     height: usize,
     a: ArrayView<f32, Ix2>,
     b: ArrayView<f32, Ix2>,
-    strategy: Policy,
+    strategy: Policy,   
 ) -> u64 {
     let mut dest = Array::zeros((height, height));
     let mat = matrix_adaptive::Matrix {

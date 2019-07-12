@@ -1,7 +1,10 @@
+use crate::my_ndarray;
 use faster::*;
 use smallvec::SmallVec;
 use std::iter;
 use std::time::Instant;
+use ndarray::{ArrayView,ArrayViewMut,Ix2};
+use std::slice::{from_raw_parts, from_raw_parts_mut};
 
 pub fn multiply_add(
     into: &mut [f32],
@@ -43,6 +46,36 @@ pub fn multiply_add(
     }
 }
 
+pub fn mult_faster_from_ndarray(a: ArrayView<f32,Ix2> ,b: ArrayView<f32,Ix2>,output: &mut ArrayViewMut<f32,Ix2>) {
+    let (raw_ptr_a, len_a) = my_ndarray::view_ptr(a);
+    let stridesa = a.strides();
+    let (raw_ptr_b, len_b) = my_ndarray::view_ptr(b);
+    let stridesb = b.strides();
+    let raw_ptr_r = output.as_mut_ptr();
+    let dimr = output.shape();
+    let dima = a.shape();
+    let dimb = b.shape();
+    let (row, col) = (dimr[0], dimr[1]);
+    let strides = output.strides();
+    let len_r = (row - 1) * strides[0] as usize + col;
+    let slicea = unsafe { from_raw_parts(raw_ptr_a, len_a) };
+    let sliceb = unsafe { from_raw_parts(raw_ptr_b, len_b) };
+    let mut slicer = unsafe { from_raw_parts_mut(raw_ptr_r, len_r) };
+    multiply_add(
+                    &mut slicer,
+                    &slicea,
+                    &sliceb,
+                    dima[1],
+                    dima[0],
+                    dimb[1],
+                    dimb[0],
+                    dimr[1],
+                    dimr[0],
+                    stridesa[0] as usize,
+                    stridesb[0] as usize,
+                    strides[0] as usize,
+                );
+}
 pub fn multiply_add_u32(
     into: &mut [u32],
     a: &[u32],

@@ -9,20 +9,38 @@ use rand::Rng;
 use rayon_adaptive::prelude::*;
 use rayon_adaptive::Policy;
 use std::ops::AddAssign;
+use std::fmt::Debug;
 
 pub fn mult<'a, 'b, 'd, A>(
     a: ArrayView<'a, A, Ix2>,
     b: ArrayView<'b, A, Ix2>,
     mut result: ArrayViewMut<'d, A, Ix2>,
 ) where
-    A: LinalgScalar + AddAssign,
+    A: LinalgScalar + AddAssign + Debug,
 {
     for idx_a in 0..a.rows() {
         let arow = a.row(idx_a);
         for idx_b in 0..b.cols() {
             let bcolumn = b.column(idx_b);
             let c = result.get_mut((idx_a, idx_b)).expect("Index out of bounds");
-            *c = scalar_mult(arow, bcolumn);
+            *c += scalar_mult(arow, bcolumn);
+        }
+    }
+}
+
+pub fn mult_jik<'a, 'b, 'd, A>(
+    a: ArrayView<'a, A, Ix2>,
+    b: ArrayView<'b, A, Ix2>,
+    mut result: ArrayViewMut<'d, A, Ix2>,
+) where
+    A: LinalgScalar + AddAssign + Debug,
+{
+    for idx_b in 0..b.cols() {
+        let bcolumn = b.column(idx_b);
+        for idx_a in 0..a.rows() {
+            let arow = a.row(idx_a);
+            let c = result.get_mut((idx_a, idx_b)).expect("Index out of bounds");
+            *c += scalar_mult(arow, bcolumn);
         }
     }
 }
@@ -139,7 +157,7 @@ where
     let rvec_blocks: Vec<Vec<ArrayViewMut<'d, A, Ix2>>> = split(
         result,
         |r| {
-            let (rr, rc) = r.dim();
+            let (rr, _rc) = r.dim();
             my_ndarray::divide_mut_at_id_along_axis(r, rr / 2 * rcol - 1, Axis(0))
         },
         |r| {
@@ -153,7 +171,7 @@ where
         split(
             subblock.data,
             |s| {
-                let (rr, rc) = s.dim();
+                let (_rr, rc) = s.dim();
                 my_ndarray::divide_mut_at_id_along_axis(s, rc / 2, Axis(1))
             },
             |r| {
@@ -168,12 +186,15 @@ where
     (avec_blocks, bvec_blocks, rvec_blocks)
 }
 
-pub fn mult_blocks<A>(
+
+pub fn mult_blocks<A,F>(
     ablocks: Vec<Vec<ArrayView<A, Ix2>>>,
     bblocks: Vec<Vec<ArrayView<A, Ix2>>>,
     mut cblocks: Vec<Vec<ArrayViewMut<A, Ix2>>>,
+    resolution : F,
 ) where
     A: LinalgScalar + AddAssign,
+    F: Fn(ArrayView<A, Ix2>, ArrayView<A, Ix2>, ArrayViewMut<A,Ix2>) 
 {
     for line_a in 0..ablocks.len() {
         let aline = ablocks.get(line_a).expect("out of range in Matrix A");
@@ -193,7 +214,7 @@ pub fn mult_blocks<A>(
                 let res = resline
                     .get_mut(calc_b)
                     .expect("out of range in Matrix Result");
-                mult_index_optimized(a.view(), b.view(), res.view_mut());
+                resolution(a.view(), b.view(), res.view_mut());
             }
         }
     }
@@ -201,8 +222,8 @@ pub fn mult_blocks<A>(
 
 #[test]
 fn test_mult() {
-    let height = 1000;
-    let width = 1000;
+    let height = 500;
+    let width = 500;
     let mut rng = rand::thread_rng();
     let random = rng.gen_range(0.0, 1.0);
     let an = Array::from_shape_fn((height, width), |(i, j)| {
@@ -224,8 +245,8 @@ fn test_mult() {
 
 #[test]
 fn test_mult_indexed_optimized() {
-    let height = 1000;
-    let width = 1000;
+    let height = 750;
+    let width = 750;
     let mut rng = rand::thread_rng();
     let random = rng.gen_range(0.0, 1.0);
     let an = Array::from_shape_fn((height, width), |(i, j)| {
@@ -252,14 +273,14 @@ fn test_mult_blocks() {
     let mut rng = rand::thread_rng();
     let random = rng.gen_range(0.0, 1.0);
     let an = Array::from_shape_fn((height, width), |(i, j)| {
-        (((j + i * width) % 3) as f32) + random
+        (((j + i * width) % 3) as f32) - random
     });
     let bn = Array::from_shape_fn((width, height), |(i, j)| {
-        (((j + 7 + i * height) % 3) as f32) - random
+        (((j + 7 + i * height) % 3) as f32) + random
     });
     let mut dest = Array::zeros((height, height));
-    let (avec, bvec, rvec) = cut_in_blocks(an.view(), bn.view(), dest.view_mut(), 10, 10);
-    mult_blocks(avec, bvec, rvec);
+    let (avec, bvec, rvec) = cut_in_blocks(an.view(), bn.view(), dest.view_mut(), 300, 300);
+    mult_blocks(avec, bvec, rvec, mult_index_optimized);
     let mut verif = Array::zeros((height, height));
     linalg::general_mat_mul(1.0, &an, &bn, 1.0, &mut verif);
     assert_abs_diff_eq!(
