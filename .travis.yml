@@ -1,7 +1,8 @@
 language: rust
+rust: nightly
 cache: cargo
 before_script:
 - export PATH="$PATH:$HOME/.cargo/bin"
 script:
-- cargo +nightly build --release
-- cargo +nightly test --release --features=logs
+- cargo build --release
+- cargo test --release --features=logs
