@@ -10,3 +10,4 @@ pub mod naive_sequential;
 pub mod rayon_mult;
 pub mod split;
 pub mod vectorisation;
+pub mod vectorisation_packed_simd;

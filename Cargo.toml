@@ -13,8 +13,8 @@ criterion="*"
 logs = ["rayon_logs"]
 
 [dependencies]
-rayon_logs= {optional=true, repository="../rayon-logs"}
-# {optional=true, git="https://github.com/wagnerf42/rayon-logs"}
+rayon_logs= {optional=true, path="../rayon-logs"} 
+# {optional=true, git="https://github.com/wagnerf42/rayon-logs"} 
 nalgebra = "0.18.0"
 approx = { version = "0.3", default-features = false }
 faster = {git = "https://github.com/AdamNiederer/faster/"}
@@ -29,6 +29,7 @@ rayon_adaptive = {git = "https://github.com/wagnerf42/rayon-adaptive.git", branc
 rand = "0.6.5"
 time = "0.1"
 num-traits="*"
+packed_simd="*"
 
 [[bench]]
 name = "matrix_mult"

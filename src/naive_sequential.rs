@@ -99,6 +99,7 @@ where
         a,
         |a| {
             let (ar, _ac) = a.dim();
+            let ar = ar.next_power_of_two();
             my_ndarray::divide_at_id_along_axis(a, ar / 2 * acol - 1, Axis(0))
         },
         |a| {
@@ -113,6 +114,7 @@ where
             subblock.data,
             |s| {
                 let (_ar, ac) = s.dim();
+                let ac = ac.next_power_of_two();
                 my_ndarray::divide_at_id_along_axis(s, ac / 2, Axis(1))
             },
             |a| {
@@ -129,6 +131,7 @@ where
         b,
         |b| {
             let (br, _bc) = b.dim();
+            let br = br.next_power_of_two();
             my_ndarray::divide_at_id_along_axis(b, br / 2 * bcol - 1, Axis(0))
         },
         |b| {
@@ -143,6 +146,7 @@ where
             subblock.data,
             |s| {
                 let (_br, bc) = s.dim();
+                let bc = bc.next_power_of_two();
                 my_ndarray::divide_at_id_along_axis(s, bc / 2, Axis(1))
             },
             |b| {
@@ -158,6 +162,7 @@ where
         result,
         |r| {
             let (rr, _rc) = r.dim();
+            let rr = rr.next_power_of_two();
             my_ndarray::divide_mut_at_id_along_axis(r, rr / 2 * rcol - 1, Axis(0))
         },
         |r| {
@@ -172,6 +177,7 @@ where
             subblock.data,
             |s| {
                 let (_rr, rc) = s.dim();
+                let rc = rc.next_power_of_two();
                 my_ndarray::divide_mut_at_id_along_axis(s, rc / 2, Axis(1))
             },
             |r| {

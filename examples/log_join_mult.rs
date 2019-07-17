@@ -39,6 +39,7 @@ fn main() {
         .build()
         .expect("Pool creation failed");
 
+
     pool.logging_install(|| {
         matrix_half
             .cut()

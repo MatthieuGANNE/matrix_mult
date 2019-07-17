@@ -13,12 +13,12 @@ fn average(numbers: [f64; ITERS as usize]) -> f64 {
 }
 
 fn main() {
-    do_benchmark("benchmark_f32_ndarray.data_4C", benchmark::benchmark);
-    do_benchmark("benchmark_f32_faster.data_4C", benchmark::benchmark_faster);
-    do_benchmark(
-        "benchmark_f32_adaptive.data_4C",
-        benchmark::benchmark_adaptive,
-    );
+    // do_benchmark("benchmark_f32_ndarray.data_4C", benchmark::benchmark);
+    do_benchmark("benchmark_f32_faster_seq_naive", benchmark::benchmark_faster);
+    // do_benchmark(
+    //     "benchmark_f32_adaptive.data_4C",
+    //     benchmark::benchmark_adaptive,
+    // );
 }
 
 pub fn do_benchmark<
@@ -29,9 +29,7 @@ pub fn do_benchmark<
     f: F,
 ) -> std::io::Result<()> {
     let mut file = File::create(filename)?;
-    let input_size = vec![
-        5, 10, 20, 25, 50, 75, 100, 200, 300, 400, 500, 1000, 1500, 2000, 2500, 3000, 4000,
-    ];
+    let input_size: Vec<usize> =  (1..15).map(|i| i * 200).collect();
 
     for (_j, size) in enumerate(input_size) {
         let mut rayon1 = [0f64; ITERS as usize];
@@ -41,7 +39,7 @@ pub fn do_benchmark<
         let mut speeduprayon1 = [0f64; ITERS as usize];
         let mut speeduprayon1000 = [0f64; ITERS as usize];
         let mut speedupjoin = [0f64; ITERS as usize];
-
+        eprintln!("Seq {:?}", size);
         for i in 0..ITERS {
             let height = size as usize;
             let width = size as usize;
@@ -53,26 +51,25 @@ pub fn do_benchmark<
             });
 
             // Rayon 1
-            rayon1[i] = f(height, an.view(), bn.view(), Policy::Rayon(1)) as f64;
-            eprintln!("RAYON");
+            // rayon1[i] = f(height, an.view(), bn.view(), Policy::Rayon(1)) as f64;
+            // eprintln!("RAYON");
             // Rayon 1000
-            rayon100[i] = f(height, an.view(), bn.view(), Policy::Rayon(1_000)) as f64;
-            eprintln!("SEQ");
+            // rayon100[i] = f(height, an.view(), bn.view(), Policy::Rayon(1_000)) as f64;
             // Sequential
             sequential[i] = f(height, an.view(), bn.view(), Policy::Sequential) as f64;
-            eprintln!("JOIN {:?}", size);
-            // Join
-            join[i] = (f(
-                height,
-                an.view(),
-                bn.view(),
-                Policy::Join(size * size / 64 + 1),
-            )) as f64;
+            // eprintln!("JOIN {:?}", size);
+            // // Join
+            // join[i] = (f(
+            //     height,
+            //     an.view(),
+            //     bn.view(),
+            //     Policy::Join(size * size / 64 + 1),
+            // )) as f64;
 
             // speedup
-            speeduprayon1[i] = sequential[i] / rayon1[i];
-            speeduprayon1000[i] = sequential[i] / rayon100[i];
-            speedupjoin[i] = sequential[i] / join[i];
+            // speeduprayon1[i] = sequential[i] / rayon1[i];
+            // speeduprayon1000[i] = sequential[i] / rayon100[i];
+            // speedupjoin[i] = sequential[i] / join[i];
         }
 
         file.write_all(

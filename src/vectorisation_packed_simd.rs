@@ -1,7 +1,8 @@
-use faster::*;
+use packed_simd::f32x8;
 use ndarray::{ArrayView,ArrayViewMut,Ix2};
-use std::slice::{from_raw_parts, from_raw_parts_mut};
 use crate::my_ndarray;
+use crate::vectorisation;
+use std::slice::{from_raw_parts, from_raw_parts_mut};
 #[cfg(test)]
 use crate::naive_sequential;
 #[cfg(test)]
@@ -9,56 +10,7 @@ use ndarray::{linalg,Array};
 #[cfg(test)]
 use rand::Rng;
 
-pub fn multiply_add<F>(
-    into: &mut [f32],
-    a: &[f32],
-    b: &[f32],
-    awidth: usize,
-    aheight: usize,
-    bwidth: usize,
-    bheight: usize,
-    intowidth: usize,
-    intoheight: usize,
-    stridesa: usize,
-    stridesb: usize,
-    stridesinto: usize,
-    mut resolution: F,
-)
-where 
-F: FnMut(&mut [f32],f32,&[f32],usize,usize,usize,usize,usize, usize)
-{
-    assert_eq!(awidth, bheight);
-    assert_eq!(aheight, intoheight);
-    assert_eq!(bwidth, intowidth);
-    let mut i = 0;
-    let mut k = 0;
-    let mut j = 0;
-    while i < stridesa*aheight - (stridesa - awidth) {
-            while k < bheight*stridesb - (stridesb-bwidth) {
-
-                resolution(&mut into[(j)..(j + intowidth)],
-                a[i],
-                &b[k..(k+bwidth)],
-                awidth, 
-                aheight, 
-                bwidth, 
-                bheight, 
-                intowidth, 
-                intoheight);
-                k += stridesb;
-                if i % (stridesa) == awidth - 1 {
-                    i = i + stridesa - (awidth-1);
-                    j = j + stridesinto;
-                } else {
-                    i += 1;
-                }
-            }
-            k = 0;
-    }
-}
-
-fn multiply_add_local(    
-    mut into: &mut [f32],
+fn multiply_add_packed_sim(  mut into: &mut [f32],
     a: f32,
     b: &[f32],
     awidth: usize,
@@ -66,17 +18,25 @@ fn multiply_add_local(
     bwidth: usize,
     bheight: usize,
     intowidth: usize,
-    intoheight: usize,
-) {
+    intoheight: usize,){
 
-    let temp = (b.simd_iter(f32s(0.)),into.simd_iter_mut(f32s(0.)))
-            .zip() 
-            .simd_map(|(x,y)| x*f32s(a) + y)
-            .scalar_collect();
-    temp.simd_iter(f32s(0.)).scalar_fill(&mut into);
+    let achunk = f32x8::splat(a);
+    b.chunks_exact(8)
+    .zip(into.chunks_exact_mut(8))
+    .for_each(|(x,y)| { 
+        let chunkx = f32x8::from_slice_unaligned(x);
+        let chunky = f32x8::from_slice_unaligned(y);
+        let res = chunkx.mul_add(achunk ,chunky);
+        res.write_to_slice_unaligned(y);
+    });
+    let len = b.len();
+    let calc_len = len - len%8;
+    b[calc_len..len].iter().zip(into[calc_len..len].iter_mut())
+    .for_each(|(x,y)|{
+        *y = a*x+*y
+
+    });
 }
-
-
 
 pub fn mult_faster_from_ndarray(a: ArrayView<f32,Ix2> ,b: ArrayView<f32,Ix2>,output: &mut ArrayViewMut<f32,Ix2>) {
     let (raw_ptr_a, len_a) = my_ndarray::view_ptr(a);
@@ -93,7 +53,7 @@ pub fn mult_faster_from_ndarray(a: ArrayView<f32,Ix2> ,b: ArrayView<f32,Ix2>,out
     let slicea = unsafe { from_raw_parts(raw_ptr_a, len_a) };
     let sliceb = unsafe { from_raw_parts(raw_ptr_b, len_b) };
     let mut slicer = unsafe { from_raw_parts_mut(raw_ptr_r, len_r) };
-    multiply_add(
+    vectorisation::multiply_add(
                     &mut slicer,
                     &slicea,
                     &sliceb,
@@ -106,7 +66,7 @@ pub fn mult_faster_from_ndarray(a: ArrayView<f32,Ix2> ,b: ArrayView<f32,Ix2>,out
                     stridesa[0] as usize,
                     stridesb[0] as usize,
                     strides[0] as usize,
-                    multiply_add_local,
+                    multiply_add_packed_sim,
                 );
 }
 
