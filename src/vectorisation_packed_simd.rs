@@ -13,12 +13,12 @@ use rand::Rng;
 fn multiply_add_packed_sim(  mut into: &mut [f32],
     a: f32,
     b: &[f32],
-    awidth: usize,
-    aheight: usize,
-    bwidth: usize,
-    bheight: usize,
-    intowidth: usize,
-    intoheight: usize,){
+    _awidth: usize,
+    _aheight: usize,
+    _bwidth: usize,
+    _bheight: usize,
+    _intowidth: usize,
+    _intoheight: usize,){
 
     let achunk = f32x8::splat(a);
     b.chunks_exact(8)
@@ -47,6 +47,9 @@ pub fn mult_faster_from_ndarray(a: ArrayView<f32,Ix2> ,b: ArrayView<f32,Ix2>,out
     let dimr = output.shape();
     let dima = a.shape();
     let dimb = b.shape();
+    assert_eq!(dima[0],dimr[0]);
+    assert_eq!(dima[1],dimb[0]);
+    assert_eq!(dimb[1],dimr[1]);
     let (row, col) = (dimr[0], dimr[1]);
     let strides = output.strides();
     let len_r = (row - 1) * strides[0] as usize + col;

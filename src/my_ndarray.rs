@@ -329,6 +329,49 @@ pub fn divide_mut<'a: 'b, 'b, A>(
     let (a21, a22) = a2.split_at(Axis(1), l_col);
     (a11, a12, a21, a22)
 }
+pub fn divide_power2_friendly_mut<'a, A, D>(
+    a: ArrayViewMut<'a, A, D>,
+) -> (
+    ArrayViewMut<'a, A, D>,
+    ArrayViewMut<'a, A, D>,
+    ArrayViewMut<'a, A, D>,
+    ArrayViewMut<'a, A, D>,
+)
+where
+    D: Dimension,
+{
+    let dim = a.shape();
+
+    let (arow, acol) = (dim[0], dim[1]);
+    let mut ar2 = arow;
+    if !arow.is_power_of_two() {
+        ar2 = arow.next_power_of_two();
+    }
+    let l_row_bef = ar2 / 4;
+    let l_row_after = ar2 /2;
+    let diff1 = arow/2 - l_row_bef;
+    let diff2 = l_row_after - arow/2;
+    let mut row_calc = l_row_after;
+    if diff2 > diff1 {
+        row_calc = l_row_bef;
+    }
+    let mut ac2 = acol;
+    if !acol.is_power_of_two() {
+        ac2 = acol.next_power_of_two();
+    }
+    let l_col_bef = ac2 / 4;
+    let l_col_after = ac2 / 2;
+    let diff1 = acol/2 - l_col_bef;
+    let diff2 = l_col_after - acol/2;
+    let mut col_calc = l_col_after;
+    if diff2>diff1 {
+        col_calc = l_col_bef;
+    }
+    let (a1, a2) = a.split_at(Axis(0), row_calc);
+    let (a11, a12) = a1.split_at(Axis(1), col_calc);
+    let (a21, a22) = a2.split_at(Axis(1), col_calc);
+    (a11, a12, a21, a22)
+}
 
 pub fn divide<'a, A, D>(
     a: ArrayView<'a, A, D>,
@@ -353,6 +396,50 @@ where
     (a11, a12, a21, a22)
 }
 
+pub fn divide_power2_friendly<'a, A, D>(
+    a: ArrayView<'a, A, D>,
+) -> (
+    ArrayView<'a, A, D>,
+    ArrayView<'a, A, D>,
+    ArrayView<'a, A, D>,
+    ArrayView<'a, A, D>,
+)
+where
+    D: Dimension,
+{
+    let dim = a.shape();
+
+    let (arow, acol) = (dim[0], dim[1]);
+    let mut ar2 = arow;
+    if !arow.is_power_of_two() {
+        ar2 = arow.next_power_of_two();
+    }
+        let l_row_bef = ar2 / 4;
+        let l_row_after = ar2 /2;
+        let diff1 = arow/2 - l_row_bef;
+        let diff2 = l_row_after - arow/2;
+        let mut row_calc = l_row_after;
+        if diff2 > diff1 {
+            row_calc = l_row_bef;
+        }
+    let mut ac2 = acol;
+    if !acol.is_power_of_two() {
+        ac2 = acol.next_power_of_two();
+    }
+        let l_col_bef = ac2 / 4;
+        let l_col_after = ac2 / 2;
+        let diff1 = acol/2 - l_col_bef;
+        let diff2 = l_col_after - acol/2;
+        let mut col_calc = l_col_after;
+        if diff2>diff1 {
+            col_calc = l_col_bef;
+        }
+    let (a1, a2) = a.split_at(Axis(0), row_calc);
+    let (a11, a12) = a1.split_at(Axis(1), col_calc);
+    let (a21, a22) = a2.split_at(Axis(1), col_calc);
+    (a11, a12, a21, a22)
+}
+
 pub fn divide_at_id_along_axis<'a, A>(
     a: ArrayView<'a, A, Ix2>,
     index: usize,
@@ -361,11 +448,14 @@ pub fn divide_at_id_along_axis<'a, A>(
     let dim = a.shape();
     let (_arow, acol) = (dim[0], dim[1]);
     if axis.index() == 0 {
-        let l_row = index / acol + 1;
+        let l_row = (index as f64 / acol as f64).ceil() as usize;
         let (a1, a2) = a.split_at(axis, l_row);
         (a1, a2)
     } else {
-        let l_col = index % acol;
+        let mut l_col = index;
+        if(acol != 1 && acol != 0){ 
+            l_col = index % acol;
+        }
         let (a1, a2) = a.split_at(axis, l_col);
         (a1, a2)
     }
@@ -377,14 +467,16 @@ pub fn divide_mut_at_id_along_axis<'a, A>(
     axis: Axis,
 ) -> (ArrayViewMut<'a, A, Ix2>, ArrayViewMut<'a, A, Ix2>) {
     let dim = a.shape();
-
     let (_arow, acol) = (dim[0], dim[1]);
     if axis.index() == 0 {
-        let l_row = index / acol + 1;
+        let l_row = (index as f64 / acol as f64).ceil() as usize;
         let (a1, a2) = a.split_at(axis, l_row);
         (a1, a2)
     } else {
-        let l_col = index % acol;
+        let mut l_col = index;
+        if(acol != 1 && acol != 0){ 
+            l_col = index % acol;
+        }
         let (a1, a2) = a.split_at(axis, l_col);
         (a1, a2)
     }

@@ -25,7 +25,8 @@ smallvec = "~0.6"
 itertools-num="*"
 blas-src = { version = "0.2.0", default-features = false, features = ["openblas"] }
 openblas-src = { version = "0.6.0", default-features = false, features = ["cblas", "system"] }
-rayon_adaptive = {git = "https://github.com/wagnerf42/rayon-adaptive.git", branch = "new_api", features=["logs"]}
+rayon_adaptive = {path ="../rayon-adaptive", features=["logs"]}
+# {git = "https://github.com/wagnerf42/rayon-adaptive.git", branch = "new_api", features=["logs"]}
 rand = "0.6.5"
 time = "0.1"
 num-traits="*"

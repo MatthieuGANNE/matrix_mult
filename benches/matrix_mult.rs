@@ -7,8 +7,7 @@ use criterion::{Criterion, ParameterizedBenchmark};
 use matrix_mult::matrix;
 use matrix_mult::my_ndarray;
 use ndarray::s;
-use ndarray::{Array, ArrayView, ArrayViewMut};
-use rand::Rng;
+use ndarray::{Array};
 use rayon_adaptive::prelude::*;
 use rayon_adaptive::Policy;
 

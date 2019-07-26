@@ -48,18 +48,26 @@ fn main() {
 
     pool.logging_install(|| {
         matrix_half
-            .with_policy(Policy::Adaptive(50,30000))
-            .for_each(|e| {
+            .with_policy(Policy::Join(3000*3000/64))
+            .for_each(|mut e| {
                 let (ra,ca) = e.a.dim();
+                let (rb,cb) = e.b.dim();
                 let (rd,cd) = e.d.dim();
-                subgraph("prod", ra * ca * cd , || {
-                    let (a, b, mut d) = (e.a, e.b, e.d);
-                    linalg::general_mat_mul(1.0, &a, &b, 1.0, &mut d)
+                e.asize = (ra,ca);
+                e.bsize = (rb,cb);
+                e.dsize = (rd,cd);
+                e.with_policy(Policy::Adaptive(30,3000)).for_each( |e| {
+                    let (ra,ca) = e.a.dim();
+                    let (rd,cd) = e.d.dim();
+                    subgraph("prod", ra * ca * cd , || {
+                        let (a, b, mut d) = (e.a, e.b, e.d);
+                        linalg::general_mat_mul(1.0, &a, &b, 1.0, &mut d)
+                    })
                     //vectorisation_packed_simd::mult_faster_from_ndarray(a,b,&mut d);
                 })
             })
     })
     .1
-    .save_svg("test_new_cut.svg")
+    .save_svg("test_Join_Adaptive.svg")
     .expect("Saving failed");
 }

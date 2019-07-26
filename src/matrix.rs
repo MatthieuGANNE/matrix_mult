@@ -22,7 +22,6 @@ impl<'a, 'b, 'd, A> Divisible for Matrix<'a, 'b, 'd, A>
 where
     A: LinalgScalar + Send + Sync,
 {
-    // Can be changed to IndexedPower, need to change divide and divide_mut of my_ndarray
     type Power = BasicPower;
 
     fn base_length(&self) -> Option<usize> {
@@ -53,7 +52,7 @@ where
                     ArrayViewMut<A, Ix2>,
                 )> = Vec::new();
                 let sub_matrix = self.matrix.pop().unwrap();
-                let (v1, v2, v3, v4) = divide(sub_matrix);
+                let (v1, v2, v3, v4) = divide_matrix(sub_matrix);
                 copy_self.push(v1);
                 copy_self.push(v2);
                 other.push(v3);
@@ -67,7 +66,7 @@ where
     }
 }
 
-fn divide<'a, 'b, 'c, A>(
+fn divide_matrix<'a, 'b, 'c, A>(
     mut sub_matrix: (
         Vec<(ArrayView<'a, A, Ix2>, ArrayView<'b, A, Ix2>)>,
         ArrayViewMut<'c, A, Ix2>,
@@ -97,12 +96,11 @@ where
     let mut r2: Vec<(ArrayView<A, Ix2>, ArrayView<A, Ix2>)> = Vec::new();
     let mut r3: Vec<(ArrayView<A, Ix2>, ArrayView<A, Ix2>)> = Vec::new();
     let mut r4: Vec<(ArrayView<A, Ix2>, ArrayView<A, Ix2>)> = Vec::new();
-    let (d1, d2, d3, d4) = my_ndarray::divide_mut(sub_matrix.1);
+    let (d1, d2, d3, d4) = my_ndarray::divide_power2_friendly_mut(sub_matrix.1);
     while !sub_matrix.0.is_empty() {
         let (a, b) = sub_matrix.0.pop().unwrap();
-
-        let (a1, a2, a3, a4) = my_ndarray::divide(a);
-        let (b1, b2, b3, b4) = my_ndarray::divide(b);
+        let (a1, a2, a3, a4) = my_ndarray::divide_power2_friendly(a);
+        let (b1, b2, b3, b4) = my_ndarray::divide_power2_friendly(b);
         r1.push((a1, b1));
         r1.push((a2, b3));
         r2.push((a1, b2));
@@ -116,6 +114,7 @@ where
 }
 
 #[test]
+
 fn test_mult() {
     let mut rng = rand::thread_rng();
     let random = rng.gen_range(0.0, 1.0);

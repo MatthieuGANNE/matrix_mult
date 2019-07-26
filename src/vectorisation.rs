@@ -27,15 +27,18 @@ pub fn multiply_add<F>(
 where 
 F: FnMut(&mut [f32],f32,&[f32],usize,usize,usize,usize,usize, usize)
 {
+     if awidth == 0 || aheight == 0 || intowidth == 0 || intoheight == 0 || bwidth == 0 || bheight == 0 {
+        return;
+    }
     assert_eq!(awidth, bheight);
     assert_eq!(aheight, intoheight);
     assert_eq!(bwidth, intowidth);
     let mut i = 0;
     let mut k = 0;
     let mut j = 0;
+   
     while i < stridesa*aheight - (stridesa - awidth) {
             while k < bheight*stridesb - (stridesb-bwidth) {
-
                 resolution(&mut into[(j)..(j + intowidth)],
                 a[i],
                 &b[k..(k+bwidth)],
@@ -61,12 +64,12 @@ fn multiply_add_local(
     mut into: &mut [f32],
     a: f32,
     b: &[f32],
-    awidth: usize,
-    aheight: usize,
-    bwidth: usize,
-    bheight: usize,
-    intowidth: usize,
-    intoheight: usize,
+    _awidth: usize,
+    _aheight: usize,
+    _bwidth: usize,
+    _bheight: usize,
+    _intowidth: usize,
+    _intoheight: usize,
 ) {
 
     let temp = (b.simd_iter(f32s(0.)),into.simd_iter_mut(f32s(0.)))
