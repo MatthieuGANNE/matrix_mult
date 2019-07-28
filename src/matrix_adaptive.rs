@@ -198,20 +198,15 @@ where
             idx = ac;
         }
 
-        //eprintln!("BEFORE A {:?}/{:?}", self.a.dim(),idx);
         // Cut along the column
         let (a1, a2) =
         my_ndarray::divide_at_id_along_axis(self.a, idx, Axis(1));
-        //eprintln!("AFTER A {:?}/{:?}", a1.dim(),a2.dim());
         // Cut alog the row
-        //println!("BEFORE B {:?}/{:?}", self.b.dim(),(idx) * bdim2 - 1);
         let (b1, b2) =
                 my_ndarray::divide_at_id_along_axis(self.b, (idx) * bc - 1, Axis(0));
-        //eprintln!("AFTER B {:?}/{:?}", b1.dim(),b2.dim());
         let (rd,cd) = self.d.dim();
         let raw_mut= &mut self.d[[0,0]];
         let cpy_d:ArrayViewMut<A,Ix2> = unsafe{ArrayViewMut::from_shape_ptr((rd,cd).strides((f as usize ,g as usize)),raw_mut)};
-        //println!("TEST = {:?}, {:?}", idx , ac);
         
         if idx != ac {
             self.a = a2;

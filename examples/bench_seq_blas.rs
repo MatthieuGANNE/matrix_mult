@@ -20,7 +20,7 @@ fn average(numbers: [f64; ITERS as usize]) -> f64 {
 
 fn main() -> std::io::Result<()> {
     let input_size: Vec<usize> = (1..41).map(|i| i * 250).collect();
-    do_benchmark_seq("openblas_native_8threads", |a,b,mut c|  linalg::general_mat_mul(1.0, &a, &b, 1.0, &mut c),input_size.clone());
+    do_benchmark_seq("openblas_native_8threads_verif", |a,b,mut c|  linalg::general_mat_mul(1.0, &a, &b, 1.0, &mut c),input_size.clone());
     //do_benchmark_seq("matrix_mult_seq_faster_native", |a,b,mut c| faster_vec::mult_faster_from_ndarray(a,b,&mut c),input_size.clone());
     //benchmark_seq_blocks("matrix_mult_seq_faster_600_native",|a,b,mut c| faster_vec::mult_faster_from_ndarray(a,b,&mut c),600,input_size.clone());
     //do_benchmark_seq("matrix_mult_seq_simd_native", |a,b,mut c| vectorisation_packed_simd::mult_faster_from_ndarray(a,b,&mut c),input_size.clone());

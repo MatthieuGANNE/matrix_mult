@@ -16,7 +16,7 @@ fn average(numbers: [f64; ITERS as usize]) -> f64 {
 }
 
 fn main() {
-    do_benchmark("OPENBLAS_new_cut_adaptive_size_128.data", |s,a,b,p| benchmark::benchmark_adaptive_generic(s,a,b, 
+    do_benchmark("OPENBLAS_new_cut_adaptive_size.data", |s,a,b,p| benchmark::benchmark_adaptive_generic(s,a,b, 
     p, |a,b,mut c| linalg::general_mat_mul(1.0, &a, &b, 1.0, &mut c)));
     // do_benchmark("benchmark_f32_vectorisation_simd_new_cut.data", |s,a,b,p| benchmark::benchmark_adaptive_generic(s,a,b, 
     // p, |a,b,mut c| vectorisation_packed_simd::mult_faster_from_ndarray(a,b,&mut c)));
@@ -69,7 +69,7 @@ pub fn do_benchmark<
             //     Policy::Join(size * size / 64 + 1),
             // )) as f64;
 
-            adaptive[i] = f(height, an.view(), bn.view(), Policy::Adaptive(f32::log2((height*height) as f32) as usize ,(128.0*f32::sqrt((height*height) as f32)) as usize)) as f64;
+            adaptive[i] = f(height, an.view(), bn.view(), Policy::Adaptive(f32::log2((height*height) as f32) as usize ,(f32::sqrt((height*height) as f32)) as usize)) as f64;
             // speedup
             speeduprayon1[i] = sequential[i] / rayon1[i];
             speeduprayon1000[i] = sequential[i] / rayon100[i];

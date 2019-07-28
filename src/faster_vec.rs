@@ -6,6 +6,13 @@ use std::time::Instant;
 use ndarray::{ArrayView,ArrayViewMut,Ix2};
 use std::slice::{from_raw_parts, from_raw_parts_mut};
 
+
+///
+/// into = a * b (f32)
+/// This function only work with 2-dim matrix 
+/// 'strides*' is the number of element between 2 consecutive element of a same column in the GLOBAL matrix
+/// Indeed, this function is build for work with BLOCK of matrix 
+/// 
 pub fn multiply_add(
     into: &mut [f32],
     a: &[f32],
@@ -46,6 +53,10 @@ pub fn multiply_add(
     }
 }
 
+/// use for matrix multiplication f32
+/// function that use the ndarray representation and the vectorization of faster
+/// unsafe because we transform a raw pointer into a slice
+/// 
 pub fn mult_faster_from_ndarray(a: ArrayView<f32,Ix2> ,b: ArrayView<f32,Ix2>,output: &mut ArrayViewMut<f32,Ix2>) {
     let (raw_ptr_a, len_a) = my_ndarray::view_ptr(a);
     let stridesa = a.strides();
@@ -76,6 +87,13 @@ pub fn mult_faster_from_ndarray(a: ArrayView<f32,Ix2> ,b: ArrayView<f32,Ix2>,out
                     strides[0] as usize,
                 );
 }
+
+///
+/// into = a * b (u32)
+/// This function only work with 2-dim matrix 
+/// 'strides*' is the number of element between 2 consecutive element of a same column in the GLOBAL matrix
+/// Indeed, this function is build for work with BLOCK of matrix 
+/// 
 pub fn multiply_add_u32(
     into: &mut [u32],
     a: &[u32],
@@ -118,6 +136,12 @@ pub fn multiply_add_u32(
     }
 }
 
+
+///
+/// Debug function for print the time of a square matrix mult f32
+/// if power2 then the size of the matrix will be the next power of 2.
+/// the string will be print
+/// 
 pub fn timed_matmul(size: usize, name: &str, power2: bool) -> u64 {
     let mut size = size;
     if power2 {
@@ -149,6 +173,11 @@ pub fn timed_matmul(size: usize, name: &str, power2: bool) -> u64 {
     nanos
 }
 
+///
+/// Debug function for print the time of a square matrix mult u32
+/// if power2 then the size of the matrix will be the next power of 2.
+/// the string will be print
+/// 
 pub fn timed_matmul_u32(size: usize, name: &str, power2: bool) -> u64 {
     let mut size = size;
     if power2 {
